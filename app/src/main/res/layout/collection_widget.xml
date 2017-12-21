@@ -1,0 +1,47 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+    <RelativeLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:id="@+id/widgetTitleLabel"
+            android:text="@string/widget_title"
+            android:textColor="@color/colorAccent"
+            android:background="@color/colorPrimary"
+            android:layout_alignParentStart="true"
+            android:textSize="18sp"
+            android:layout_height="wrap_content"></TextView>
+        <RelativeLayout android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true">
+            <ImageView
+                android:id="@+id/imageViewUpdate"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@mipmap/ic_refresh" />
+            <ImageView
+                android:id="@+id/imageViewSettings"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_toRightOf="@id/imageViewUpdate"
+                android:src="@mipmap/ic_settings" />
+
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ListView android:id="@+id/widgetListView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:dividerHeight="1dp"
+            android:divider="#eeeeee"
+            tools:listitem="@layout/collection_widget_list_item"></ListView>
+    </LinearLayout>
+</LinearLayout>
