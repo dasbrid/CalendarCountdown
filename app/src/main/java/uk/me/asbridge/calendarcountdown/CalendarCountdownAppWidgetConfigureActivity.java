@@ -1,39 +1,75 @@
 package uk.me.asbridge.calendarcountdown;
 
+import android.Manifest;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.CalendarContract;
+import android.support.v4.content.ContextCompat;
+import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ListView;
+
+import java.util.ArrayList;
 
 /**
  * The configuration screen for the {@link CalendarCountdownAppWidget CalendarCountdownAppWidget} AppWidget.
  */
 public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
-
+    private static final String TAG = LogHelper.makeLogTag(CalendarCountdownAppWidgetConfigureActivity.class);
 
     private static final String PREF_PREFIX_KEY = "appwidget_";
-    int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    EditText mAppWidgetText;
+    private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+    private  EditText mAppWidgetText;
+    private ListView mlistViewCalendars;
+    private CalendarsAdapter mCalendarsAdapter;
+    private ArrayList<Calendar> mCalendars;
+
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
             final Context context = CalendarCountdownAppWidgetConfigureActivity.this;
 
             // When the button is clicked, store the string locally
             String widgetText = mAppWidgetText.getText().toString();
-            saveTitlePref(context, mAppWidgetId, widgetText);
+            Configuration.setTitlePref(context, mAppWidgetId, widgetText);
+
+            SparseBooleanArray checked = mlistViewCalendars.getCheckedItemPositions();
+            LogHelper.i(TAG, checked.size() , " selected");
+            String selectedCalendars = new String();
+            for (int i = 0; i < checked.size(); i++) {
+                // Item position in adapter
+                int position = checked.keyAt(i);
+                LogHelper.i(TAG, "i=",i, " position=", position);
+                if (checked.valueAt(i)) {
+                    Calendar selectedItem = mCalendars.get(position);
+                    if (i !=0) {
+                        selectedCalendars+=",";
+                    }
+                    selectedCalendars = selectedCalendars + selectedItem.getId();
+                }
+            }
+            Configuration.setCalendarsListPref(context, mAppWidgetId, selectedCalendars);
+            LogHelper.i(TAG, "SelectedCalendars = ", selectedCalendars);
+
 
             // It is the responsibility of the configuration activity to update the app widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-//            CalendarCountdownAppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
 
-            // Make sure we pass back the original appWidgetId
-            Intent resultValue = new Intent();
-            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
-            setResult(RESULT_OK, resultValue);
+            //N.B.: we want to launch this intent to our AppWidgetProvider!
+            // Send broadcaset for first update
+            Intent firstUpdate = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE, null, getApplicationContext(), CalendarCountdownAppWidget.class);
+            int[] appWidgetIds = new int[] {mAppWidgetId};
+            firstUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+            sendBroadcast(firstUpdate);
+            setResult(RESULT_OK, firstUpdate);
+
+
             finish();
         }
     };
@@ -41,15 +77,6 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
     public CalendarCountdownAppWidgetConfigureActivity() {
         super();
     }
-
-    // Write the prefix to the SharedPreferences object for this widget
-    static void saveTitlePref(Context context, int appWidgetId, String text) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(Configuration.PREFS_NAME, 0).edit();
-        prefs.putString(PREF_PREFIX_KEY + appWidgetId, text);
-        prefs.apply();
-    }
-
-
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -77,7 +104,85 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
             return;
         }
 
-        mAppWidgetText.setText("Calendar Countdown  ");
+        mAppWidgetText.setText(Configuration.getTitlePref(this,mAppWidgetId));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            int permissionCheck = ContextCompat.checkSelfPermission(CalendarCountdownAppWidgetConfigureActivity.this,
+                    Manifest.permission.READ_CALENDAR);
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                // We do not have necessary permission. Start activity to ask the user
+                startActivity(new Intent(CalendarCountdownAppWidgetConfigureActivity.this, GetPermissionsActivity.class));
+                finish();
+                return;
+            }
+        }
+
+        // The list of already selected calendars (in case we are opening by clicking on the widget)
+        mCalendars = new ArrayList<>();
+        String[] projection =
+                new String[]{
+                        CalendarContract.Calendars._ID,
+                        CalendarContract.Calendars.NAME,
+                        CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+                        CalendarContract.Calendars.ACCOUNT_NAME,
+                        CalendarContract.Calendars.ACCOUNT_TYPE};
+        Cursor calCursor =
+                getContentResolver().
+                        query(CalendarContract.Calendars.CONTENT_URI,
+                                projection,
+                                CalendarContract.Calendars.VISIBLE + " = 1",
+                                null,
+                                CalendarContract.Calendars._ID + " ASC");
+        if (calCursor.moveToFirst()) {
+            do {
+                long id = calCursor.getLong(0);
+                String displayName = calCursor.getString(2);
+                Calendar calendar = new Calendar(displayName, id);
+                mCalendars.add(calendar);
+                LogHelper.i(TAG, "found calendar: ",id, "-", displayName, "-", calCursor.getString(2));
+            } while (calCursor.moveToNext());
+        }
+
+        LogHelper.i(TAG, "Found ", mCalendars.size(), " calendars");
+        // Define a new Adapter
+        // First parameter - Context
+        // Second parameter - Layout for the row
+        // Third parameter - ID of the TextView to which the data is written
+        // Forth - the Array of data
+//        ArrayAdapter<String> mCalendarsAdapter = new ArrayAdapter<String>(this,R.layout.calendars_list_item, R.id.textView1, calendarnames);
+
+        mCalendarsAdapter = new CalendarsAdapter(this, mCalendars);
+        mlistViewCalendars = (ListView) findViewById(R.id.lvCalendars);
+        // Assign adapter to ListView
+        mlistViewCalendars.setAdapter(mCalendarsAdapter);
+        mlistViewCalendars.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        setCheckedCalendars();
+    }
+
+    /**
+     * Complicated way of setting items in the listview to be checked
+     * based on the current settings (stored in shared prefs)
+     */
+    private void setCheckedCalendars() {
+        // the ids of the currently selected calendars, from shared prefs, as an array of strings
+        // Note: these are android calendar _IDs (not indices in the list view)
+        String[] selectedCalendars = Configuration.getCalendarsList(this, mAppWidgetId);
+
+        // loop through each calendar in the list view. Set checked if it is currently selected
+        for (int c = 0; c < mCalendars.size(); c++) {
+            long id = mCalendars.get(c).getId();
+            String idString = Long.toString(id);
+            // loop through the selected calendars, looking for the current calendar
+            // stop looping if we find the calendar
+            int i;
+            for (i = 0; i < selectedCalendars.length && !selectedCalendars[i].equals(idString) ; i++); // Note: one line loop;
+            // i will equal number of selected calendars if the current calendar was NOT found (we reached the end of the list)
+            if (i < selectedCalendars.length) {
+                mlistViewCalendars.setItemChecked(c,true);
+            }
+
+        }
     }
 }
 

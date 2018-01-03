@@ -142,7 +142,7 @@ public class GetPermissionsActivity extends Activity {
     }
 
     private Class getNextActivityClass() {
-        return CalendarEventsActivity.class;
+        return CalendarCountdownAppWidgetConfigureActivity.class;
     }
 
 

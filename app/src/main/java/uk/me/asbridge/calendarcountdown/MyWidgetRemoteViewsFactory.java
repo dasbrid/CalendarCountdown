@@ -5,6 +5,7 @@ package uk.me.asbridge.calendarcountdown;
  */
 
 import android.Manifest;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,13 +32,14 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
 
 //    private ArrayList listItemList = new ArrayList();
     private Context mContext = null;
-//    private int appWidgetId;
+    private int mAppWidgetId;
     private Cursor mCursor;
+
 
     public MyWidgetRemoteViewsFactory(Context context, Intent intent) {
         this.mContext = context;
-        LogHelper.i(TAG, "MyWidgetRemoteViewsFactory.ctor");
-        //appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
+        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
+        LogHelper.i(TAG, "MyWidgetRemoteViewsFactory.ctor, mAppWidgetId=", mAppWidgetId);
 
     }
 
@@ -63,7 +65,8 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
                         CalendarContract.Events._ID,
                         CalendarContract.Events.TITLE,
                         CalendarContract.Events.DTSTART,
-                        CalendarContract.Events.ALL_DAY};
+                        CalendarContract.Events.ALL_DAY,
+                        CalendarContract.Events.CALENDAR_ID};
 
         Calendar timeAtMidnight = Calendar.getInstance();
         timeAtMidnight.set(Calendar.HOUR_OF_DAY, 0);
@@ -74,8 +77,20 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
         timeAtMidnight.add(Calendar.MONTH, Configuration.getLimitNumberOfMonths());
         long threeMonthsHenceAtMidnightInMs = timeAtMidnight.getTimeInMillis();
         String selection;
-        selection = CalendarContract.Events.DTSTART + " > ?" + " AND " + CalendarContract.Events.DTSTART + " < ?";
-        String [] selectionArgs = new String [] {Long.toString(todayAtMidnightInMs),Long.toString(threeMonthsHenceAtMidnightInMs)};
+        String[] calendarsListArray = Configuration.getCalendarsList(mContext, mAppWidgetId);
+        String qnMarks = getQuestionMarks(calendarsListArray.length);
+        selection = CalendarContract.Events.DTSTART + " > ?" + " AND " + CalendarContract.Events.DTSTART + " < ? AND " + CalendarContract.Events.CALENDAR_ID + " IN ("+ qnMarks + ")";
+
+
+
+        String[] selectionArgs = new String[calendarsListArray.length + 2];
+        selectionArgs[0] = Long.toString(todayAtMidnightInMs);
+        selectionArgs[1] = Long.toString(threeMonthsHenceAtMidnightInMs);
+        for (int i = 0 ; i < calendarsListArray.length; i++) {
+            selectionArgs[i+2] = calendarsListArray[i];
+        }
+
+//      String [] selectionArgs = new String [] {Long.toString(todayAtMidnightInMs),Long.toString(threeMonthsHenceAtMidnightInMs), "1","2","3"};
 
         // Check we have necessary permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -103,6 +118,14 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
 
     }
 
+    private String getQuestionMarks(int len) {
+        StringBuilder sb = new StringBuilder(len * 2 - 1);
+        sb.append("?");
+        for (int i = 1; i < len; i++) {
+            sb.append(",?");
+        }
+        return sb.toString();
+    }
     @Override
     public void onDestroy() {
         if (mCursor != null) {

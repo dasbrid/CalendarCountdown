@@ -11,14 +11,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CalendarEventsActivity">
-        </activity>
 
         <receiver android:name=".CalendarCountdownAppWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
+            <intent-filter>
+            <action android:name="android.intent.action.PROVIDER_CHANGED"/>
+            <data android:scheme="content"/>
+            <data android:host="com.android.calendar"/>
+            </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/calendar_countdown_app_widget_info" />
