@@ -43,21 +43,31 @@ public class Configuration {
     static void setCalendarsListPref(Context context, int appWidgetId, String text) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(Configuration.PREFS_NAME, 0).edit();
         prefs.putString(Integer.toString(appWidgetId)+"CALENDAR_LIST_PREF", text);
+        prefs.putBoolean(Integer.toString(appWidgetId)+"CALENDAR_LIST_SET", true);
         prefs.apply();
         LogHelper.i(TAG, "setCalendarsListPref for id", appWidgetId, " to ", text, " = ", getCalendarsListPref(context, appWidgetId));
-
     }
+
+    public static boolean getIsCalendarsListSet(Context context, int appWidgetId) {
+        SharedPreferences sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean calendarsListIsSet = sharedPref.getBoolean(Integer.toString(appWidgetId) + "CALENDAR_LIST_SET", false);
+        return calendarsListIsSet;
+    }
+
 
     public static String getCalendarsListPref(Context context, int appWidgetId)
     {
         SharedPreferences sharedPref = context.getSharedPreferences(PREFS_NAME,Context.MODE_PRIVATE);
-        String calendarsList = sharedPref.getString(Integer.toString(appWidgetId)+"CALENDAR_LIST_PREF", "1,2");
+        String calendarsList = sharedPref.getString(Integer.toString(appWidgetId)+"CALENDAR_LIST_PREF", "");
         LogHelper.i(TAG, "getCalendarsListPref for id", appWidgetId, " = ", calendarsList);
         return calendarsList;
     }
 
     public static String[] getCalendarsList(Context context, int appWidgetId) {
         String calendarsListString = getCalendarsListPref(context, appWidgetId);
+        if (calendarsListString.isEmpty()) {
+            return new String[0];
+        }
         String[] calendarsListArray = calendarsListString.split(",");
         return calendarsListArray;
     }

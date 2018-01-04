@@ -168,18 +168,24 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
         // the ids of the currently selected calendars, from shared prefs, as an array of strings
         // Note: these are android calendar _IDs (not indices in the list view)
         String[] selectedCalendars = Configuration.getCalendarsList(this, mAppWidgetId);
-
+        boolean calendarListIsSet = Configuration.getIsCalendarsListSet(this, mAppWidgetId);
+        LogHelper.i(TAG, selectedCalendars.length, " cals");
         // loop through each calendar in the list view. Set checked if it is currently selected
         for (int c = 0; c < mCalendars.size(); c++) {
-            long id = mCalendars.get(c).getId();
-            String idString = Long.toString(id);
-            // loop through the selected calendars, looking for the current calendar
-            // stop looping if we find the calendar
-            int i;
-            for (i = 0; i < selectedCalendars.length && !selectedCalendars[i].equals(idString) ; i++); // Note: one line loop;
-            // i will equal number of selected calendars if the current calendar was NOT found (we reached the end of the list)
-            if (i < selectedCalendars.length) {
-                mlistViewCalendars.setItemChecked(c,true);
+            if ( !calendarListIsSet ) {
+                mlistViewCalendars.setItemChecked(c, true);
+            } else {
+                long id = mCalendars.get(c).getId();
+                String idString = Long.toString(id);
+                // loop through the selected calendars, looking for the current calendar
+                // stop looping if we find the calendar
+                int i;
+                for (i = 0; i < selectedCalendars.length && !selectedCalendars[i].equals(idString); i++)
+                    ; // Note: one line loop;
+                // i will equal number of selected calendars if the current calendar was NOT found (we reached the end of the list)
+                if (i < selectedCalendars.length) {
+                    mlistViewCalendars.setItemChecked(c, true);
+                }
             }
 
         }

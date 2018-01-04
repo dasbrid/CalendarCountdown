@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v4.content.ContextCompat;
 import android.widget.AdapterView;
@@ -90,8 +91,6 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
             selectionArgs[i+2] = calendarsListArray[i];
         }
 
-//      String [] selectionArgs = new String [] {Long.toString(todayAtMidnightInMs),Long.toString(threeMonthsHenceAtMidnightInMs), "1","2","3"};
-
         // Check we have necessary permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
@@ -119,6 +118,9 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
     }
 
     private String getQuestionMarks(int len) {
+        if (len == 0) {
+            return new String();
+        }
         StringBuilder sb = new StringBuilder(len * 2 - 1);
         sb.append("?");
         for (int i = 1; i < len; i++) {
@@ -184,6 +186,18 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
         } else {
             remoteView.setTextColor(R.id.widgetItemDays, Color.WHITE);
         }
+
+        // Next, set a fill-intent, which will be used to fill in the pending intent template
+        // that is set on the collection view in StackWidgetProvider.
+        Bundle extras = new Bundle();
+        long calendarEventId = mCursor.getLong(0);
+        extras.putInt(CalendarCountdownAppWidget.EXTRA_ITEM_LIST_POSTION, position);
+        extras.putLong(CalendarCountdownAppWidget.EXTRA_ITEM_EVENT_ID, calendarEventId);
+        Intent fillInIntent = new Intent();
+        fillInIntent.putExtras(extras);
+        // Make it possible to distinguish the individual on-click
+        // action of a given item
+        remoteView.setOnClickFillInIntent(R.id.widgetItemDays, fillInIntent);
         return remoteView;
     }
 }
