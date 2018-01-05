@@ -11,8 +11,18 @@ public class Configuration {
     private static final String TAG = LogHelper.makeLogTag(Configuration.class);
     public static final String PREFS_NAME = "uk.me.asbridge.calendarcountdown.CalendarCountdownAppWidget";
 
-    public static int getLimitNumberOfMonths () {
-        return 3;
+    public static int getLimitNumberOfMonths (Context context, int appWidgetId) {
+        SharedPreferences sharedPref = context.getSharedPreferences(PREFS_NAME,Context.MODE_PRIVATE);
+        int numMonths = sharedPref.getInt(Integer.toString(appWidgetId)+"LIMIT_NUM_MONTHS_PREF", 3);
+        LogHelper.i(TAG, "getLimitNumberOfMonths for id", appWidgetId, " = ", numMonths);
+        return numMonths;
+    }
+
+    static void setLimitNumberOfMonths(Context context, int appWidgetId, int numMonths) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(Configuration.PREFS_NAME, 0).edit();
+        prefs.putInt(Integer.toString(appWidgetId)+"LIMIT_NUM_MONTHS_PREF", numMonths);
+        prefs.apply();
+        LogHelper.i(TAG, "setLimitNumberOfMonths for id", appWidgetId, " to ", numMonths, " = ", getLimitNumberOfMonths(context, appWidgetId));
     }
 
     static void deletePrefs(Context context, int appWidgetId) {
@@ -28,7 +38,6 @@ public class Configuration {
         prefs.putString(Integer.toString(appWidgetId)+"TITLE_PREF", text);
         prefs.apply();
         LogHelper.i(TAG, "setTitlePref for id", appWidgetId, " to ", text, " = ", getTitlePref(context, appWidgetId));
-
     }
 
     public static String getTitlePref(Context context, int appWidgetId)

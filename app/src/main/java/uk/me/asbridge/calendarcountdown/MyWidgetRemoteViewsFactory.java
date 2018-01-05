@@ -75,7 +75,7 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
         timeAtMidnight.set(Calendar.SECOND, 0);
         timeAtMidnight.set(Calendar.MILLISECOND, 0);
         long todayAtMidnightInMs = timeAtMidnight.getTimeInMillis();
-        timeAtMidnight.add(Calendar.MONTH, Configuration.getLimitNumberOfMonths());
+        timeAtMidnight.add(Calendar.MONTH, Configuration.getLimitNumberOfMonths(mContext, mAppWidgetId));
         long threeMonthsHenceAtMidnightInMs = timeAtMidnight.getTimeInMillis();
         String selection;
         String[] calendarsListArray = Configuration.getCalendarsList(mContext, mAppWidgetId);

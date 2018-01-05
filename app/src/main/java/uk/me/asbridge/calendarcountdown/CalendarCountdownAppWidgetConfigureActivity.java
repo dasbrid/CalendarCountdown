@@ -26,7 +26,8 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
 
     private static final String PREF_PREFIX_KEY = "appwidget_";
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    private  EditText mAppWidgetText;
+    private  EditText etTitle;
+    private  EditText etNumMonths;
     private ListView mlistViewCalendars;
     private CalendarsAdapter mCalendarsAdapter;
     private ArrayList<Calendar> mCalendars;
@@ -36,8 +37,12 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
             final Context context = CalendarCountdownAppWidgetConfigureActivity.this;
 
             // When the button is clicked, store the string locally
-            String widgetText = mAppWidgetText.getText().toString();
-            Configuration.setTitlePref(context, mAppWidgetId, widgetText);
+            String title = etTitle.getText().toString();
+            Configuration.setTitlePref(context, mAppWidgetId, title);
+
+            String numMonthsString = etNumMonths.getText().toString();
+            int numMonths = Integer.parseInt(numMonthsString);
+            Configuration.setLimitNumberOfMonths(context, mAppWidgetId, numMonths);
 
             SparseBooleanArray checked = mlistViewCalendars.getCheckedItemPositions();
             LogHelper.i(TAG, checked.size() , " selected");
@@ -87,8 +92,9 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
         setResult(RESULT_CANCELED);
 
         setContentView(R.layout.calendar_countdown_app_widget_configure);
-        mAppWidgetText = (EditText) findViewById(R.id.appwidget_text);
-        findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
+        etTitle = (EditText) findViewById(R.id.etTitle);
+        etNumMonths = (EditText) findViewById(R.id.etNumMonths);
+        findViewById(R.id.OK_button).setOnClickListener(mOnClickListener);
 
         // Find the widget id from the intent.
         Intent intent = getIntent();
@@ -104,7 +110,9 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
             return;
         }
 
-        mAppWidgetText.setText(Configuration.getTitlePref(this,mAppWidgetId));
+        etTitle.setText(Configuration.getTitlePref(this,mAppWidgetId));
+        int numMonths = Configuration.getLimitNumberOfMonths(this,mAppWidgetId);
+        etNumMonths.setText(Integer.toString(numMonths));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
@@ -140,17 +148,8 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
                 String displayName = calCursor.getString(2);
                 Calendar calendar = new Calendar(displayName, id);
                 mCalendars.add(calendar);
-                LogHelper.i(TAG, "found calendar: ",id, "-", displayName, "-", calCursor.getString(2));
             } while (calCursor.moveToNext());
         }
-
-        LogHelper.i(TAG, "Found ", mCalendars.size(), " calendars");
-        // Define a new Adapter
-        // First parameter - Context
-        // Second parameter - Layout for the row
-        // Third parameter - ID of the TextView to which the data is written
-        // Forth - the Array of data
-//        ArrayAdapter<String> mCalendarsAdapter = new ArrayAdapter<String>(this,R.layout.calendars_list_item, R.id.textView1, calendarnames);
 
         mCalendarsAdapter = new CalendarsAdapter(this, mCalendars);
         mlistViewCalendars = (ListView) findViewById(R.id.lvCalendars);
