@@ -72,6 +72,8 @@ public class CalendarCountdownAppWidget extends AppWidgetProvider {
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
             remoteViews.setRemoteAdapter( R.id.widgetListView, intent);
 
+            remoteViews.setTextViewText(R.id.widgetTitleLabel, Configuration.getTitlePref(context, appWidgetId)); //Integer.toString(appWidgetId) );
+
             // clickIntent for the settings icon (launch configuration class)
             Intent configIntent = new Intent(context, CalendarCountdownAppWidgetConfigureActivity.class);
             configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
@@ -103,9 +105,6 @@ public class CalendarCountdownAppWidget extends AppWidgetProvider {
             PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             remoteViews.setPendingIntentTemplate(R.id.widgetListView, toastPendingIntent);
-
-
-            remoteViews.setTextViewText(R.id.widgetTitleLabel, Configuration.getTitlePref(context, appWidgetId)); //Integer.toString(appWidgetId) );
 
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
 

@@ -197,7 +197,7 @@ public class MyWidgetRemoteViewsFactory implements RemoteViewsService.RemoteView
         fillInIntent.putExtras(extras);
         // Make it possible to distinguish the individual on-click
         // action of a given item
-        remoteView.setOnClickFillInIntent(R.id.widgetItemDays, fillInIntent);
+        remoteView.setOnClickFillInIntent(R.id.widgetItemContainer, fillInIntent);
         return remoteView;
     }
 }
