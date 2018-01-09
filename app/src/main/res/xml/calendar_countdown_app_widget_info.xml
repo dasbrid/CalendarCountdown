@@ -4,7 +4,7 @@
     android:initialLayout="@layout/collection_widget"
     android:minHeight="110dp"
     android:minWidth="320dp"
-    android:previewImage="@drawable/example_appwidget_preview"
+    android:previewImage="@drawable/calendar_countdown_appwidget_preview"
     android:resizeMode="horizontal|vertical"
     android:configure="uk.me.asbridge.calendarcountdown.CalendarCountdownAppWidgetConfigureActivity"
     android:widgetCategory="home_screen"/>

@@ -38,7 +38,7 @@ public class CalendarCountdownAppWidget extends AppWidgetProvider {
             long calendarEventId = intent.getLongExtra(EXTRA_ITEM_EVENT_ID, -1);
             LogHelper.i(TAG, "Touched view " ,viewIndex , " event id=" , calendarEventId);
             Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, calendarEventId);
-            Intent EditCalendarIntent = new Intent(Intent.ACTION_EDIT)
+            Intent EditCalendarIntent = new Intent(Intent.ACTION_VIEW)
                     .setData(uri)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(EditCalendarIntent);

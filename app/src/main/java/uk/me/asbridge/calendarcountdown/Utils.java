@@ -1,5 +1,6 @@
 package uk.me.asbridge.calendarcountdown;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -8,7 +9,10 @@ import java.util.Date;
  * Created by AsbridgeD on 21-Dec-17.
  */
 
+
 public class Utils {
+    private static final DateFormat defTimeLocal = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+    private static final DateFormat defDayLocal  = DateFormat.getDateInstance(DateFormat.SHORT);
 
     /**
      * get formatted string representing the time of a calendar event
@@ -17,15 +21,11 @@ public class Utils {
      * @return string showing formatted time
      */
     public static String getEventTimeString(long eventTime, boolean isAllDayEvent) {
-        SimpleDateFormat sdfDay = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
-
         Date eventDate = new Date(eventTime);
-
         if (isAllDayEvent) {
-            return sdfDay.format(eventDate);
+            return defDayLocal.format(eventDate);
         } else {
-            return sdfTime.format(eventDate);
+            return defTimeLocal.format(eventDate);
         }
     }
 
