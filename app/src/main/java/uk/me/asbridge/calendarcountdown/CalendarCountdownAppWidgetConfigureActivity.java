@@ -150,7 +150,7 @@ public class CalendarCountdownAppWidgetConfigureActivity extends Activity {
                 mCalendars.add(calendar);
             } while (calCursor.moveToNext());
         }
-
+        calCursor.close();
         mCalendarsAdapter = new CalendarsAdapter(this, mCalendars);
         mlistViewCalendars = (ListView) findViewById(R.id.lvCalendars);
         // Assign adapter to ListView
